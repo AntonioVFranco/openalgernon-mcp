@@ -20,6 +20,13 @@ from openalgernon_mcp.tools.study import (
     score_card_impl,
     get_progress_impl,
 )
+from openalgernon_mcp.tools.teaching import (
+    ingest_course_impl,
+    get_roadmap_impl,
+    start_lesson_impl,
+    submit_response_impl,
+    get_teaching_profile_impl,
+)
 
 mcp = FastMCP("openalgernon")
 
@@ -91,6 +98,44 @@ def score_card(card_id: int, grade: int) -> dict:
 def get_progress(slug: str | None = None) -> dict:
     """Get study progress statistics. Pass slug to filter by material."""
     return get_progress_impl(slug=slug)
+
+
+# --- Teaching engine tools ---
+
+@mcp.tool()
+def ingest_course(urls: list[str]) -> dict:
+    """Fetch course landing pages and store content for roadmap generation. Pass a list of https:// URLs."""
+    return ingest_course_impl(urls)
+
+
+@mcp.tool()
+def get_roadmap(roadmap_id: int) -> dict:
+    """Retrieve a stored course roadmap by ID."""
+    return get_roadmap_impl(roadmap_id)
+
+
+@mcp.tool()
+def start_lesson(
+    module_id: str,
+    topic_id: str,
+    topic_name: str,
+    discipline: str,
+    material_id: int | None = None,
+) -> dict:
+    """Start a new lesson. discipline: math|cs|ai-engineering|english. Returns lesson_id and teaching profile."""
+    return start_lesson_impl(module_id, topic_id, topic_name, discipline, material_id)
+
+
+@mcp.tool()
+def submit_response(lesson_id: int, response_text: str) -> dict:
+    """Submit a student response to a lesson. Returns full comprehension history for evaluation."""
+    return submit_response_impl(lesson_id, response_text)
+
+
+@mcp.tool()
+def get_teaching_profile(discipline: str) -> dict:
+    """Get the pedagogical profile for a discipline: math|cs|ai-engineering|english."""
+    return get_teaching_profile_impl(discipline)
 
 
 # --- MCP Prompts ---
@@ -167,6 +212,38 @@ def feynman(slug: str) -> GetPromptResult:
                         "5. Provide a precise correction and ask them to re-explain.\n"
                         "6. Repeat for 3-5 concepts from the material.\n"
                         "Focus on depth over breadth. Challenge vague answers."
+                    ),
+                ),
+            )
+        ],
+    )
+
+
+@mcp.prompt()
+def teach(discipline: str, topic: str) -> GetPromptResult:
+    """Start a teaching session on any topic in the given discipline."""
+    return GetPromptResult(
+        description=f"Teaching session: {topic} ({discipline})",
+        messages=[
+            PromptMessage(
+                role="user",
+                content=TextContent(
+                    type="text",
+                    text=(
+                        f"Teach me about '{topic}' in the discipline '{discipline}'.\n\n"
+                        f"1. Call get_teaching_profile(discipline='{discipline}') to load the pedagogical profile.\n"
+                        "2. Call start_lesson to create a lesson record and get the lesson_id.\n"
+                        "   Use module_id='standalone', topic_id='standalone', "
+                        f"   topic_name='{topic}', discipline='{discipline}'.\n"
+                        "3. Using the teaching profile, compose and deliver the lesson following the "
+                        "   profile's technique triggers and understanding signals.\n"
+                        "4. After presenting the lesson, ask an assessment question.\n"
+                        "5. When the student responds, call submit_response(lesson_id, response_text) "
+                        "   to log their answer, then evaluate it using the teaching profile.\n"
+                        "6. Based on the score, continue, deepen, pivot to a different technique, "
+                        "   or advance to the next concept.\n"
+                        "Use the discipline profile throughout — technique selection, misconception "
+                        "awareness, and understanding signals all come from the profile."
                     ),
                 ),
             )
