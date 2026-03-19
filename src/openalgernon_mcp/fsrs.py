@@ -74,7 +74,7 @@ def compute_next_state(
             new_state = "learning"
             interval = 1
 
-    elif state in ("learning", "relearning"):
+    elif state == "learning":
         if grade == GRADE_GOOD:
             new_s = s * 1.5
             new_d = _clamp(d - 0.05, 0.1, 1.0)
@@ -84,6 +84,18 @@ def compute_next_state(
             new_s = s
             new_d = _clamp(d + 0.1, 0.1, 1.0)
             new_state = "learning"
+            interval = 1
+
+    elif state == "relearning":
+        if grade == GRADE_GOOD:
+            new_s = s * 1.5
+            new_d = _clamp(d - 0.05, 0.1, 1.0)
+            new_state = "review"
+            interval = max(1, round(new_s))
+        else:  # GRADE_AGAIN
+            new_s = max(0.1, s * 0.5)  # decay on repeated failure
+            new_d = _clamp(d + 0.1, 0.1, 1.0)
+            new_state = "relearning"
             interval = 1
 
     else:  # state == "review"

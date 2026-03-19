@@ -58,6 +58,6 @@ def test_remove_material_deletes(db):
     from openalgernon_mcp.tools.content import remove_material_impl
     remove_material_impl("test-mat", db)
     conn = get_connection(db)
-    row = conn.execute("SELECT id FROM materials WHERE slug = 'test-mat'").fetchone()
+    row = conn.execute("SELECT id FROM materials WHERE slug = ?", ("test-mat",)).fetchone()
     conn.close()
     assert row is None

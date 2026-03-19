@@ -1,9 +1,6 @@
 import math
 import pytest
-from openalgernon_mcp.fsrs import compute_next_state, CardState
-
-GRADE_AGAIN = 1
-GRADE_GOOD = 3
+from openalgernon_mcp.fsrs import compute_next_state, CardState, GRADE_AGAIN, GRADE_GOOD
 
 
 def make_state(stability=0.4, difficulty=0.3, reps=0, lapses=0,

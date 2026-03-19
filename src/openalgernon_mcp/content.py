@@ -87,6 +87,12 @@ def validate_manifest(raw: dict[str, Any], repo_path: str) -> AlgernonManifest:
 
     items: list[ContentItem] = []
     for item in content_raw:
+        if not isinstance(item, dict):
+            raise AlgernonValidationError("each content item must be a mapping")
+        if "title" not in item or not item["title"]:
+            raise AlgernonValidationError("each content item must have a non-empty 'title'")
+        if "path" not in item:
+            raise AlgernonValidationError("each content item must have a 'path'")
         if item.get("type") != "text":
             raise AlgernonValidationError(
                 f"content item type must be 'text', got: {item.get('type')!r}"
@@ -122,8 +128,13 @@ def clone_or_update(github_url: str, dest_path: str) -> None:
         dest_path: Local path to clone into.
 
     Raises:
+        ValueError: If github_url is not a valid https://github.com/ URL.
         RuntimeError: If git command fails.
     """
+    if not github_url.startswith("https://github.com/"):
+        raise ValueError(
+            f"Only https://github.com/ URLs are supported, got: {github_url!r}"
+        )
     if Path(dest_path).joinpath(".git").exists():
         result = subprocess.run(
             ["git", "-C", dest_path, "pull", "--ff-only"],
