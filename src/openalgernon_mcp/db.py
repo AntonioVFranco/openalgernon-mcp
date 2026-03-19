@@ -70,6 +70,44 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE INDEX IF NOT EXISTS idx_card_state_due ON card_state(due_date);
 CREATE INDEX IF NOT EXISTS idx_cards_deck     ON cards(deck_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_card   ON reviews(card_id);
+
+CREATE TABLE IF NOT EXISTS roadmaps (
+    id           INTEGER PRIMARY KEY,
+    material_id  INTEGER REFERENCES materials(id) ON DELETE CASCADE,
+    discipline   TEXT NOT NULL,
+    source_urls  TEXT NOT NULL,
+    modules_json TEXT NOT NULL,
+    created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS lesson_state (
+    id               INTEGER PRIMARY KEY,
+    material_id      INTEGER REFERENCES materials(id) ON DELETE SET NULL,
+    module_id        TEXT NOT NULL,
+    topic_id         TEXT NOT NULL,
+    lesson_plan_json TEXT NOT NULL,
+    technique_used   TEXT NOT NULL,
+    student_level    TEXT NOT NULL
+        CHECK(student_level IN ('beginner', 'intermediate', 'advanced')),
+    status           TEXT NOT NULL DEFAULT 'active'
+        CHECK(status IN ('active', 'completed', 'paused')),
+    created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS comprehension_log (
+    id            INTEGER PRIMARY KEY,
+    lesson_id     INTEGER NOT NULL REFERENCES lesson_state(id) ON DELETE CASCADE,
+    response_text TEXT NOT NULL,
+    score         REAL,
+    misconception TEXT,
+    next_action   TEXT NOT NULL
+        CHECK(next_action IN ('continue', 'deepen', 'pivot', 'advance', 'pending')),
+    logged_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_roadmaps_discipline ON roadmaps(discipline);
+CREATE INDEX IF NOT EXISTS idx_lesson_state_status ON lesson_state(status);
+CREATE INDEX IF NOT EXISTS idx_comprehension_lesson ON comprehension_log(lesson_id);
 """
 
 DEFAULT_DB_PATH = os.path.expanduser("~/.openalgernon/data/study.db")
