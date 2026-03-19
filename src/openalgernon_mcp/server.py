@@ -3,10 +3,17 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("openalgernon")
 
 from openalgernon_mcp.tools.content import (
+    install_material_impl,
     list_materials_impl,
     get_material_info_impl,
     remove_material_impl,
 )
+
+
+@mcp.tool()
+def install_material(github_ref: str) -> dict:
+    """Install a study material from GitHub. Format: github:author/repo"""
+    return install_material_impl(github_ref)
 
 
 @mcp.tool()
