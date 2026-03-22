@@ -1,3 +1,5 @@
+<img width="1798" height="707" alt="opalg-mcp-logo" src="https://github.com/user-attachments/assets/f631cf75-b1e8-46ca-b280-03f0bce056d0" />
+
 # openalgernon-mcp
 
 MCP server for the [OpenAlgernon](https://github.com/AntonioVFranco/openalgernon)
